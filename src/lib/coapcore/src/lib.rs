@@ -81,4 +81,4 @@ mod seccontext;
 pub use seccontext::*;
 
 mod error;
-pub use credentials::{CredentialError, CredentialErrorDetail as CredentialErrorKind};
+pub use error::{CredentialError, CredentialErrorDetail as CredentialErrorKind};
