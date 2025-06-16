@@ -12,7 +12,7 @@ pub struct CredentialError {
 
 #[derive(Debug, Copy, Clone)]
 #[non_exhaustive]
-pub(crate) enum CredentialErrorDetail {
+pub enum CredentialErrorDetail {
     /// Input data contains items that violate a protocol.
     ///
     /// This is somewhat fuzzy towards
