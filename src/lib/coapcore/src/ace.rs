@@ -235,7 +235,7 @@ struct SigStructureForSignature1<'a> {
 #[non_exhaustive]
 pub struct CwtClaimsSet<'a> {
     #[n(3)]
-    pub(crate) aud: Option<&'a str>,
+    pub aud: Option<&'a str>,
     #[n(4)]
     pub(crate) exp: u64,
     #[n(6)]
@@ -243,7 +243,7 @@ pub struct CwtClaimsSet<'a> {
     #[b(8)]
     cnf: Cnf<'a>,
     #[cbor(b(9), with = "minicbor::bytes")]
-    pub(crate) scope: &'a [u8],
+    pub scope: &'a [u8],
 }
 
 /// A single CWT Claims Set Confirmation value.
