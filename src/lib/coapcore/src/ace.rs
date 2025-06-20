@@ -64,7 +64,7 @@ type UnprotectedAuthzInfoPost<'a> = AceCbor<'a>;
 pub struct HeaderMap<'a> {
     #[n(1)]
     // Might be extended as more exotic algorithms are supported
-    pub(crate) alg: Option<i32>,
+    pub alg: Option<i32>,
     #[cbor(b(5), with = "minicbor::bytes")]
     pub(crate) iv: Option<&'a [u8]>,
 }
