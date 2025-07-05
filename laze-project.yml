@@ -250,6 +250,8 @@ contexts:
     parent: nrf52
     selects:
       - cortex-m4f
+    provides:
+      - has_nrf_ble
     env:
       PROBE_RS_CHIP: nrf52832_xxAA
 
@@ -257,6 +259,8 @@ contexts:
     parent: nrf52
     selects:
       - cortex-m4f
+    provides:
+      - has_nrf_ble
     env:
       PROBE_RS_CHIP: nrf52833_xxAA
 
@@ -264,6 +268,8 @@ contexts:
     parent: nrf52
     selects:
       - cortex-m4f
+    provides:
+      - has_nrf_ble
     env:
       PROBE_RS_CHIP: nrf52840_xxAA
 
@@ -453,6 +459,11 @@ contexts:
       - sw/benchmark
     env:
       OPENOCD_ARGS: foo
+    tasks:
+      flash-dfu:
+        cmd:
+          - llvm-objcopy -O binary ${out} ${out}.bin
+          - 'dfu-util -d 0483:df11 -a 0 -s 0x08000000:leave -D ${out}.bin || echo "... Note: dfu-util sometimes fails despite the upload being correct."'
 
   - name: stm32c031c6
     parent: stm32
@@ -550,6 +561,19 @@ contexts:
         - --cfg capability=\"hw/stm32-rng-cryp\"
         - --cfg capability=\"hw/stm32-usb-drd-fs\"
 
+  - name: stm32u585ai
+    parent: stm32
+    selects:
+      - cortex-m33f
+    provides:
+      - has_hwrng
+      - has_storage_support
+    env:
+      PROBE_RS_CHIP: STM32U585AI
+      RUSTFLAGS:
+        - --cfg capability=\"hw/stm32-rng\"
+        - --cfg capability=\"hw/stm32-usb-synopsis\"
+
   - name: stm32wb55rg
     parent: stm32
     selects:
@@ -603,9 +627,10 @@ modules:
     env:
       global:
         RUSTC_TARGET: thumbv7em-none-eabihf
-        CARGO_ENV_TARGET: CARGO_TARGET_THUMBV7EM_NONE_EABIHF
+        CARGO_TARGET_PREFIX: CARGO_TARGET_THUMBV7EM_NONE_EABIHF
         RUSTFLAGS:
           - --cfg armv7m
+          - --cfg armv7m_eabihf
 
   - name: thumbv8m.main-none-eabi
     env:
@@ -622,6 +647,7 @@ modules:
         CARGO_TARGET_PREFIX: CARGO_TARGET_THUMBV8M_MAIN_NONE_EABIHF
         RUSTFLAGS:
           - --cfg armv8m
+          - --cfg armv8m_eabihf
 
   - name: cortex-m
     env:
@@ -667,7 +693,7 @@ modules:
   - name: cortex-m4f
     selects:
       - cortex-m
-      - thumbv7em-none-eabi # actually eabihf, but ariel-os doesn't support hard float yet
+      - thumbv7em-none-eabihf
     env:
       global:
         RUSTFLAGS:
@@ -676,7 +702,7 @@ modules:
   - name: cortex-m7f
     selects:
       - cortex-m
-      - thumbv7em-none-eabi # actually eabihf, but ariel-os doesn't support hard float yet
+      - thumbv7em-none-eabihf
     env:
       global:
         RUSTFLAGS:
@@ -694,7 +720,7 @@ modules:
   - name: cortex-m33f
     selects:
       - cortex-m
-      - thumbv8m.main-none-eabi # actually eabihf, but ariel-os doesn't support hard float yet
+      - thumbv8m.main-none-eabihf
     env:
       global:
         RUSTFLAGS:
@@ -1135,6 +1161,17 @@ modules:
       global:
         RUSTFLAGS:
           - --cfg capability=\"hw/ble\"
+
+  - name: has_nrf_ble
+    help: Marks an incompatibility of nrf devices with the interrupt executor (MPSL crashing)
+    context:
+      - nrf52
+    selects:
+      - hwrng
+    provides:
+      - has_ble
+    conflicts:
+      - executor-interrupt
 
   - name: ble-peripheral
     help: Enables BLE peripheral functionality
@@ -1762,6 +1799,18 @@ builders:
       CARGO_ENV:
         # This ISR is unused on a naked board. Configured here for testing.
         - CONFIG_SWI=LPUART1
+
+  - name: st-steval-mkboxpro
+    parent: stm32u585ai
+    provides:
+      - has_swi
+      - has_usb_device_port
+    env:
+      CARGO_ENV:
+        # This ISR is unused on the eval board.
+        - CONFIG_SWI=USART2
+        # This board needs to disable vbus_detection for USB to work.
+        - CONFIG_VBUS_DETECTION=false
 
   - name: stm32u083c-dk
     parent: stm32u083mc
